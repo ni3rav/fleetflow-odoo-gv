@@ -9,6 +9,7 @@ import { env } from "@/lib/env";
 import demoRouter from "@/routes/demo";
 import vehiclesRouter from "@/routes/vehicles";
 import driversRouter from "@/routes/drivers";
+import tripsRouter from "@/routes/trips";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use(express.json());
 app.use("/api", demoRouter);
 app.use("/api/vehicles", vehiclesRouter);
 app.use("/api/drivers", driversRouter);
+app.use("/api/trips", tripsRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
