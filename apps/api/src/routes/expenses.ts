@@ -51,11 +51,11 @@ router.get(
   },
 );
 
-// POST /api/expenses (manager, dispatcher, financial analyst)
+// POST /api/expenses (manager, dispatcher, analyst — log fuel/costs)
 router.post(
   "/",
   requireAuth,
-  requireRole("manager", "dispatcher", "safety_officer", "analyst"),
+  requireRole("manager", "dispatcher", "analyst"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = createExpenseSchema.safeParse(req.body);
@@ -108,11 +108,11 @@ router.put(
   },
 );
 
-// DELETE /api/expenses/:id (manager, analyst)
+// DELETE /api/expenses/:id (manager only)
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("manager", "analyst"),
+  requireRole("manager"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await expenseService.deleteExpense(req.params.id as string);

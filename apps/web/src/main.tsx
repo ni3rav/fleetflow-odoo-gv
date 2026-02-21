@@ -22,6 +22,8 @@ import { DriversPage } from "@/components/features/drivers/drivers-page";
 import { AnalyticsPage } from "@/components/features/analytics/analytics-page";
 import { LoginPage } from "@/components/features/auth/login-page";
 import { SignupPage } from "@/components/features/auth/signup-page";
+import { ForgotPasswordPage } from "@/components/features/auth/forgot-password-page";
+import { ResetPasswordPage } from "@/components/features/auth/reset-password-page";
 import { LandingPage } from "@/components/features/landing/landing-page";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DemoPage } from "@/page/demo";
@@ -63,6 +65,8 @@ createRoot(document.getElementById("root")!).render(
               <Routes>
                 <Route path="login" element={<LoginPage />} />
                 <Route path="signup" element={<SignupPage />} />
+                <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="reset-password" element={<ResetPasswordPage />} />
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<RootLayout />}>
                   <Route element={<RouteProtector />}>
