@@ -1,11 +1,14 @@
 import cors from "cors";
 import express from "express";
+import type { Request, Response, NextFunction } from "express";
 import { toNodeHandler } from "better-auth/node";
 import logger from "@/lib/logger";
 
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env";
-import demoRouter from "./routes/demo";
+import demoRouter from "@/routes/demo";
+import vehiclesRouter from "@/routes/vehicles";
+import driversRouter from "@/routes/drivers";
 
 const app = express();
 
@@ -48,9 +51,26 @@ app.use((req, res, next) => {
 });
 app.use(express.json());
 app.use("/api", demoRouter);
+app.use("/api/vehicles", vehiclesRouter);
+app.use("/api/drivers", driversRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
+});
+
+// Global error handler — catches anything thrown/next(err)'d from routes
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  logger.error(
+    {
+      err,
+      method: req.method,
+      url: req.originalUrl,
+      body: req.body,
+      stack: err.stack,
+    },
+    "Unhandled error",
+  );
+  res.status(500).json({ error: "Internal server error" });
 });
 
 app.listen(env.PORT, () => {
