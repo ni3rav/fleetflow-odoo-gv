@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CopyPlus } from "lucide-react";
+import { TripCreationForm } from "./trip-creation-form";
 
 export function DispatchPage() {
   return (
@@ -22,10 +23,7 @@ export function DispatchPage() {
           <CardDescription>Fill out the details below to assign a new dispatch.</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="flex flex-col h-48 items-center justify-center border border-dashed border-border/60 rounded-lg text-muted-foreground bg-muted/10">
-            <p className="font-medium text-foreground/70 mb-1">Dispatch Form Ready</p>
-            <p className="text-sm">Validation & Workflow logic will be implemented here.</p>
-          </div>
+          <TripCreationForm />
         </CardContent>
       </Card>
     </div>

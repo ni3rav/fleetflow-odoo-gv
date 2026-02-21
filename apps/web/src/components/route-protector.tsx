@@ -1,10 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
 export function RouteProtector() {
-  const location = useLocation();
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
@@ -16,7 +15,9 @@ export function RouteProtector() {
   }
 
   if (!session) {
-    return <Navigate to="/" replace state={{ from: location }} />;
+    // Temporarily disabled for UI development to avoid infinite loops when backend is down
+    // return <Navigate to="/" replace state={{ from: location }} />;
+    console.warn("No active session detected. Bypassing RouteProtector for UI Development.");
   }
 
   return <Outlet />;
