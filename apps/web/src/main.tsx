@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorFallback } from "@/components/error-fallback";
 import { RouteProtector } from "@/components/route-protector";
 import { DashboardPage } from "@/components/dashboard-page";
+import { VehicleRegistryPage } from "@/components/features/fleet/vehicle-registry-page";
 import { DemoPage } from "@/page/demo";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -52,7 +53,14 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<RootLayout />}>
                 <Route element={<RouteProtector />}>
-                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route index element={<DashboardPage />} />
+                  <Route path="fleet" element={<VehicleRegistryPage />} />
+                  <Route path="dispatch" element={<DashboardPage />} />
+                  <Route path="maintenance" element={<DashboardPage />} />
+                  <Route path="expenses" element={<DashboardPage />} />
+                  <Route path="drivers" element={<DashboardPage />} />
+                  <Route path="analytics" element={<DashboardPage />} />
+                  <Route path="settings" element={<DashboardPage />} />
                 </Route>
                 <Route path="demo" element={<DemoPage />} />
                 <Route path="*" element={<NotFoundPage />} />
