@@ -93,6 +93,7 @@ export function DriversPage() {
   const queryClient = useQueryClient();
   const canCreateEditDriver = useHasRole(["manager", "safety_officer"]);
   const canDeleteDriver = useHasRole(["manager"]);
+  const canChangeDriverStatus = useHasRole(["manager", "dispatcher", "safety_officer"]); // PATCH status
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
@@ -299,20 +300,26 @@ export function DriversPage() {
                     </TableCell>
                     <TableCell>{d.complaints || 0}</TableCell>
                     <TableCell>
-                      <Select
-                        value={d.status}
-                        onValueChange={(status) => handleStatusChange(d.id, status)}
-                        disabled={statusMutation.isPending && statusMutation.variables?.id === d.id}
-                      >
-                        <SelectTrigger className="w-[130px] h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="on_duty">On Duty</SelectItem>
-                          <SelectItem value="off_duty">Off Duty</SelectItem>
-                          <SelectItem value="suspended">Suspended</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {canChangeDriverStatus ? (
+                        <Select
+                          value={d.status}
+                          onValueChange={(status) => handleStatusChange(d.id, status)}
+                          disabled={statusMutation.isPending && statusMutation.variables?.id === d.id}
+                        >
+                          <SelectTrigger className="w-[130px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="on_duty">On Duty</SelectItem>
+                            <SelectItem value="off_duty">Off Duty</SelectItem>
+                            <SelectItem value="suspended">Suspended</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant="outline" className="font-normal">
+                          {formatDutyLabel(d.status)}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

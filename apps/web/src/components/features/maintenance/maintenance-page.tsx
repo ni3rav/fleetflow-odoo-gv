@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { Wrench, Plus, Edit, Trash2, Loader2, Calendar, FileText, Settings, IndianRupee, Box } from "lucide-react";
 
 import { api } from "@/lib/api-client";
+import { useHasRole } from "@/hooks/use-role";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function MaintenancePage() {
   const queryClient = useQueryClient();
+  const canManageMaintenance = useHasRole(["manager"]); // backend: create/update = manager only
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<MaintenanceLog | null>(null);
 
@@ -95,7 +97,7 @@ export function MaintenancePage() {
   });
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       vehicleId: "",
       description: "",
@@ -114,7 +116,8 @@ export function MaintenancePage() {
       toast.success("Maintenance log added!");
       setIsDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to add log"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to add log"),
   });
 
   const updateMutation = useMutation({
@@ -126,7 +129,8 @@ export function MaintenancePage() {
       toast.success("Maintenance log updated!");
       setIsDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to update log"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to update log"),
   });
 
   const deleteMutation = useMutation({
@@ -137,7 +141,8 @@ export function MaintenancePage() {
       toast.success("Maintenance log deleted!");
       setIsDeleteDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to delete log"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to delete log"),
   });
 
   const onSubmit = (values: FormValues) => {
@@ -220,9 +225,11 @@ export function MaintenancePage() {
             Track vehicle health, service history, and log preventative services.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> Log Service
-        </Button>
+        {canManageMaintenance && (
+          <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" /> Log Service
+          </Button>
+        )}
       </div>
 
       <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
@@ -295,24 +302,28 @@ export function MaintenancePage() {
                       ₹{Number(log.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleOpenEdit(log)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => handleOpenDelete(log.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {canManageMaintenance ? (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                            onClick={() => handleOpenEdit(log)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleOpenDelete(log.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
