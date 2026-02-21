@@ -92,7 +92,7 @@ export async function updateTripStatus(id: string, data: UpdateTripStatusInput) 
     const toStatus = data.status as TripStatus;
 
     const allowed: Record<TripStatus, TripStatus[]> = {
-      draft: ["dispatched", "cancelled"],
+      draft: ["dispatched", "completed", "cancelled"],
       dispatched: ["completed", "cancelled"],
       completed: [],
       cancelled: [],

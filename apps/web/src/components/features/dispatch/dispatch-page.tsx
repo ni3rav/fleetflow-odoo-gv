@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CopyPlus, Map } from "lucide-react";
+import { CopyPlus, Map, Pencil, Loader2 } from "lucide-react";
 import { TripCreationForm } from "./trip-creation-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type Trip = {
   id: string;
@@ -20,14 +22,21 @@ type Trip = {
   originAddress: string;
   destination: string;
   status: "draft" | "dispatched" | "completed" | "cancelled";
+  startOdometer?: number;
+  endOdometer?: number | null;
+  estimatedFuelCost?: string | null;
+  actualFuelCost?: string | null;
   createdAt: string;
 };
 
 export function DispatchPage() {
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [editStatus, setEditStatus] = useState<string>("");
+  const [editEndOdometer, setEditEndOdometer] = useState<string>("");
+  const [editActualFuelCost, setEditActualFuelCost] = useState<string>("");
 
-  // We could just fetch all trips minus drafts or handled in backend.
   const { data: trips = [], isLoading: loadingTrips } = useQuery({
     queryKey: ["trips"],
     queryFn: () => api.get<Trip[]>("/api/trips"),
@@ -46,15 +55,43 @@ export function DispatchPage() {
   const isLoading = loadingTrips || loadingVehicles || loadingDrivers;
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      api.patch(`/api/trips/${id}/status`, { status }),
-    onSuccess: () => {
+    mutationFn: ({
+      id,
+      status,
+      endOdometer,
+      actualFuelCost,
+    }: {
+      id: string;
+      status: string;
+      endOdometer?: number;
+      actualFuelCost?: string;
+    }) =>
+      api.patch(`/api/trips/${id}/status`, {
+        status,
+        ...(endOdometer !== undefined && { endOdometer }),
+        ...(actualFuelCost !== undefined && actualFuelCost !== "" && { actualFuelCost }),
+      }),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
-      toast.success("Trip status updated");
+      toast.success(
+        variables.status === "completed"
+          ? "Trip completed"
+          : variables.status === "cancelled"
+            ? "Trip cancelled"
+            : "Trip status updated",
+      );
+      setEditingTrip(null);
+      setEditStatus("");
+      setEditEndOdometer("");
+      setEditActualFuelCost("");
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to update status"),
+    onError: (err: unknown) =>
+      toast.error(
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+          "Failed to update trip",
+      ),
   });
 
   const getStatusBadge = (status: string) => {
@@ -70,9 +107,58 @@ export function DispatchPage() {
     }
   };
 
-  const handleStatusChange = (id: string, status: string) => {
-    statusMutation.mutate({ id, status });
+  const handleOpenEdit = (trip: Trip) => {
+    setEditingTrip(trip);
+    const nextStatus = trip.status === "draft" ? "dispatched" : "completed";
+    setEditStatus(nextStatus);
+    setEditEndOdometer(trip.endOdometer != null ? String(trip.endOdometer) : "");
+    setEditActualFuelCost(trip.actualFuelCost ?? "");
   };
+
+  const handleEditSubmit = () => {
+    if (!editingTrip) return;
+    const status = editStatus as Trip["status"];
+    if (status === editingTrip.status) {
+      setEditingTrip(null);
+      setEditStatus("");
+      setEditEndOdometer("");
+      setEditActualFuelCost("");
+      return;
+    }
+    if (status === "completed") {
+      const endOdometer = parseInt(editEndOdometer, 10);
+      if (Number.isNaN(endOdometer) || endOdometer < 0) {
+        toast.error("Enter a valid end odometer reading");
+        return;
+      }
+      statusMutation.mutate({
+        id: editingTrip.id,
+        status: "completed",
+        endOdometer,
+        actualFuelCost: editActualFuelCost.trim() || undefined,
+      });
+    } else {
+      statusMutation.mutate({ id: editingTrip.id, status });
+    }
+  };
+
+  const canEditTrip = (trip: Trip) =>
+    trip.status === "draft" || trip.status === "dispatched";
+  const editStatusOptions: { value: string; label: string }[] =
+    editingTrip?.status === "draft"
+      ? [
+          { value: "draft", label: "Draft (no change)" },
+          { value: "dispatched", label: "Dispatched" },
+          { value: "completed", label: "Completed" },
+          { value: "cancelled", label: "Cancelled" },
+        ]
+      : editingTrip?.status === "dispatched"
+        ? [
+            { value: "dispatched", label: "Dispatched (no change)" },
+            { value: "completed", label: "Completed" },
+            { value: "cancelled", label: "Cancelled" },
+          ]
+        : [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -96,6 +182,99 @@ export function DispatchPage() {
             <DialogDescription>Fill out the details below to assign a new dispatch.</DialogDescription>
           </DialogHeader>
           <TripCreationForm onSuccess={() => setIsFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!editingTrip}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingTrip(null);
+            setEditStatus("");
+            setEditEndOdometer("");
+            setEditActualFuelCost("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Edit trip — update status</DialogTitle>
+            <DialogDescription>
+              {editingTrip?.status === "draft"
+                ? "Dispatch this trip or cancel it."
+                : "Complete the trip (enter end odometer) or cancel it."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>New status</Label>
+              <Select value={editStatus} onValueChange={setEditStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {editStatusOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {editStatus === "completed" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-end-odometer">End odometer (km) *</Label>
+                  <Input
+                    id="edit-end-odometer"
+                    type="number"
+                    min={editingTrip?.startOdometer ?? 0}
+                    placeholder="e.g. 45280"
+                    value={editEndOdometer}
+                    onChange={(e) => setEditEndOdometer(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-actual-fuel">Actual fuel cost (₹, optional)</Label>
+                  <Input
+                    id="edit-actual-fuel"
+                    type="text"
+                    placeholder="e.g. 2500"
+                    value={editActualFuelCost}
+                    onChange={(e) => setEditActualFuelCost(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditingTrip(null);
+                  setEditStatus("");
+                  setEditEndOdometer("");
+                  setEditActualFuelCost("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleEditSubmit}
+                disabled={
+                  statusMutation.isPending ||
+                  !editStatus ||
+                  (editStatus === "completed" &&
+                    (editEndOdometer === "" || Number.isNaN(parseInt(editEndOdometer, 10))))
+                }
+              >
+                {statusMutation.isPending && statusMutation.variables?.id === editingTrip?.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -123,6 +302,7 @@ export function DispatchPage() {
                     <TableHead>Vehicle & Driver</TableHead>
                     <TableHead>Cargo (kg)</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,11 +313,12 @@ export function DispatchPage() {
                         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                         <TableCell><Skeleton className="h-8 w-28 rounded-md" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                       </TableRow>
                     ))
                   ) : trips.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Map className="h-8 w-8 text-muted-foreground/50" />
                           <p>No trips currently active or logged.</p>
@@ -174,25 +355,24 @@ export function DispatchPage() {
                         </TableCell>
                         <TableCell className="text-sm">{trip.cargoWeightKg}</TableCell>
                         <TableCell>
-                          {trip.status === "dispatched" ? (
-                            <Select
-                              value={trip.status}
-                              onValueChange={(val) => handleStatusChange(trip.id, val)}
+                          <Badge className={getStatusBadge(trip.status)} variant="outline">
+                            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {canEditTrip(trip) ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleOpenEdit(trip)}
                               disabled={statusMutation.isPending && statusMutation.variables?.id === trip.id}
                             >
-                              <SelectTrigger className="w-[130px] h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="dispatched">Dispatched</SelectItem>
-                                <SelectItem value="completed">Complete Trip</SelectItem>
-                                <SelectItem value="cancelled">Cancel</SelectItem>
-                              </SelectContent>
-                            </Select>
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Edit trip</span>
+                            </Button>
                           ) : (
-                            <Badge className={getStatusBadge(trip.status)} variant="outline">
-                              {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
-                            </Badge>
+                            <span className="text-muted-foreground text-xs">—</span>
                           )}
                         </TableCell>
                       </TableRow>
