@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
@@ -53,16 +53,60 @@ type Vehicle = {
   licensePlate: string;
 };
 
+/** API returns fuelCost, miscExpense, miscDescription (no category/amount). We normalize for display. */
+type ExpenseApi = {
+  id: string;
+  vehicleId: string;
+  tripId?: string | null;
+  fuelLiters?: string | null;
+  fuelCost?: string | null;
+  miscExpense?: string | null;
+  miscDescription?: string | null;
+  date: string;
+  createdAt?: string;
+  vehicle?: Vehicle;
+};
+
 type Expense = {
   id: string;
-  vehicle: Vehicle;
-  tripId?: string;
+  vehicleId: string;
+  vehicle?: Vehicle;
+  tripId?: string | null;
   amount: string;
-  category: "fuel" | "maintenance" | "toll" | "other";
+  category: string;
   date: string;
   description: string;
-  createdAt: string;
+  createdAt?: string;
 };
+
+function normalizeExpense(
+  row: ExpenseApi & { vehicle_id?: string; trip_id?: string; fuel_cost?: string | null; misc_expense?: string | null; misc_description?: string | null },
+  vehicles: Vehicle[],
+): Expense {
+  const vehicleId = row.vehicleId ?? row.vehicle_id ?? "";
+  const fuelCost = row.fuelCost ?? row.fuel_cost;
+  const miscExpense = row.miscExpense ?? row.misc_expense;
+  const miscDescription = row.miscDescription ?? row.misc_description;
+  const tripId = row.tripId ?? row.trip_id;
+  const hasFuel = fuelCost != null && String(fuelCost).trim() !== "";
+  const category = hasFuel ? "fuel" : "other";
+  const amount = (Number(fuelCost) || 0) + (Number(miscExpense) || 0);
+  const description = miscDescription?.trim() ?? "";
+  const vehicle = row.vehicle ?? vehicles.find((v) => v.id === vehicleId);
+  return {
+    id: row.id,
+    vehicleId,
+    vehicle: vehicle
+      ? { id: vehicle.id, name: vehicle.name, licensePlate: vehicle.licensePlate }
+      : undefined,
+    tripId: tripId ?? undefined,
+    amount: String(amount),
+    category,
+    date: row.date,
+    description: description || "—",
+    createdAt: row.createdAt,
+  };
+}
 
 const formSchema = z.object({
   vehicleId: z.string().min(1, "Vehicle is required"),
@@ -83,9 +127,9 @@ export function ExpensesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
 
-  const { data: expenses = [], isLoading } = useQuery({
+  const { data: expensesRaw = [], isLoading } = useQuery({
     queryKey: ["expenses"],
-    queryFn: () => api.get<Expense[]>("/api/expenses"),
+    queryFn: () => api.get<ExpenseApi[]>("/api/expenses"),
   });
 
   const { data: vehicles = [], isLoading: isLoadingVehicles } = useQuery({
@@ -93,8 +137,13 @@ export function ExpensesPage() {
     queryFn: () => api.get<Vehicle[]>("/api/vehicles"),
   });
 
+  const expenses = useMemo(
+    () => expensesRaw.map((e) => normalizeExpense(e, vehicles)),
+    [expensesRaw, vehicles],
+  );
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       vehicleId: "",
       amount: 0,
@@ -112,7 +161,8 @@ export function ExpensesPage() {
       toast.success("Expense logged successfully!");
       setIsDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to log expense"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to log expense"),
   });
 
   const updateMutation = useMutation({
@@ -123,7 +173,8 @@ export function ExpensesPage() {
       toast.success("Expense updated successfully!");
       setIsDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to update expense"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to update expense"),
   });
 
   const deleteMutation = useMutation({
@@ -133,7 +184,8 @@ export function ExpensesPage() {
       toast.success("Expense deleted permanently!");
       setIsDeleteDialogOpen(false);
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to delete expense"),
+    onError: (err: unknown) =>
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Failed to delete expense"),
   });
 
   const onSubmit = (values: FormValues) => {
@@ -159,12 +211,15 @@ export function ExpensesPage() {
 
   const handleOpenEdit = (expense: Expense) => {
     setEditingExpense(expense);
+    const category = ["fuel", "maintenance", "toll", "other"].includes(expense.category)
+      ? (expense.category as FormValues["category"])
+      : "other";
     form.reset({
-      vehicleId: expense.vehicle?.id || "",
+      vehicleId: expense.vehicle?.id || expense.vehicleId || "",
       amount: Number(expense.amount),
-      category: expense.category,
+      category,
       date: new Date(expense.date).toISOString().split("T")[0],
-      description: expense.description,
+      description: expense.description ?? "",
       tripId: expense.tripId || "",
     });
     setIsDialogOpen(true);
@@ -175,8 +230,8 @@ export function ExpensesPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const getCategoryBadge = (cat: string) => {
-    switch (cat) {
+  const getCategoryBadge = (cat: string | undefined | null) => {
+    switch (cat ?? "other") {
       case "fuel":
         return "bg-amber-500/15 text-amber-600 border-amber-500/20";
       case "maintenance":
@@ -188,7 +243,8 @@ export function ExpensesPage() {
     }
   };
 
-  const formatText = (text: string) => {
+  const formatText = (text: string | undefined | null) => {
+    if (text == null || text === "") return "—";
     return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
@@ -265,8 +321,8 @@ export function ExpensesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="truncate max-w-[250px]" title={expense.description}>
-                        {expense.description}
+                      <div className="truncate max-w-[250px]" title={expense.description ?? ""}>
+                        {expense.description ?? "—"}
                       </div>
                       {expense.tripId && (
                         <div className="text-xs text-muted-foreground mt-0.5 max-w-[200px] truncate" title={expense.tripId}>
@@ -275,7 +331,7 @@ export function ExpensesPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-medium text-destructive">
-                      ₹{Number(expense.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{(Number(expense.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

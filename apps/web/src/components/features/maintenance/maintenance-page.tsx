@@ -261,7 +261,7 @@ export function MaintenancePage() {
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto flex-shrink-0" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto shrink-0" /></TableCell>
                   </TableRow>
                 ))
               ) : logs.length === 0 ? (
