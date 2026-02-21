@@ -27,12 +27,12 @@ import { authClient } from "@/lib/auth-client"
 const items = [
   {
     title: "Command Center",
-    url: "/",
+    url: "/command",
     icon: LayoutDashboard,
   },
   {
     title: "Vehicle Registry",
-    url: "/fleet",
+    url: "/vehicle",
     icon: Truck,
   },
   {
