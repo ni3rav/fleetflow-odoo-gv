@@ -1,9 +1,19 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { Resend } from "resend";
 
 import { db } from "@/db/client";
 import { env } from "@/lib/env";
 import * as schema from "@/db/schema/index";
+
+const resend =
+  env.RESEND_API_KEY && env.EMAIL_DOMAIN
+    ? new Resend(env.RESEND_API_KEY)
+    : null;
+
+const FROM_EMAIL = env.EMAIL_DOMAIN
+  ? `FleetFlow <noreply@${env.EMAIL_DOMAIN.replace(/^\.+/, "")}>`
+  : "FleetFlow <noreply@example.com>";
 
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
@@ -16,12 +26,28 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
-      // In development, log the reset link so you can test without an email provider.
-      // For production, plug in Resend, SendGrid, nodemailer, etc. and send the email.
-      if (process.env.NODE_ENV === "development") {
-        console.log("[Password reset] Link for", user.email, ":", url);
+      if (resend) {
+        const { error } = await resend.emails.send({
+          from: FROM_EMAIL,
+          to: user.email,
+          subject: "Reset your FleetFlow password",
+          html: `
+            <p>Hi${user.name ? ` ${user.name}` : ""},</p>
+            <p>You requested a password reset. Click the link below to set a new password:</p>
+            <p><a href="${url}" style="color:#2563eb;text-decoration:underline;">Reset password</a></p>
+            <p>If you didn't request this, you can ignore this email. The link expires in 1 hour.</p>
+            <p>— FleetFlow</p>
+          `,
+        });
+        if (error) {
+          console.error("[Resend] Password reset email failed:", error);
+          throw new Error("Failed to send reset email");
+        }
+      } else {
+        if (process.env.NODE_ENV === "development") {
+          console.log("[Password reset] Link for", user.email, ":", url);
+        }
       }
-      // Optional: use env to enable real email (e.g. RESEND_API_KEY) and send here.
     },
   },
   user: {
