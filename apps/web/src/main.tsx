@@ -60,8 +60,8 @@ createRoot(document.getElementById("root")!).render(
               <Routes>
                 <Route path="/" element={<RootLayout />}>
                   <Route element={<RouteProtector />}>
-                    <Route index element={<DashboardPage />} />
-                    <Route path="fleet" element={<VehicleRegistryPage />} />
+                    <Route path="command" element={<DashboardPage />} />
+                    <Route path="vehicle" element={<VehicleRegistryPage />} />
                     <Route path="dispatch" element={<DispatchPage />} />
                     <Route path="maintenance" element={<MaintenancePage />} />
                     <Route path="expenses" element={<ExpensesPage />} />
