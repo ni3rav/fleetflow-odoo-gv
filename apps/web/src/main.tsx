@@ -15,6 +15,12 @@ import { ErrorFallback } from "@/components/error-fallback";
 import { RouteProtector } from "@/components/route-protector";
 import { DashboardPage } from "@/components/dashboard-page";
 import { VehicleRegistryPage } from "@/components/features/fleet/vehicle-registry-page";
+import { DispatchPage } from "@/components/features/dispatch/dispatch-page";
+import { MaintenancePage } from "@/components/features/maintenance/maintenance-page";
+import { ExpensesPage } from "@/components/features/expenses/expenses-page";
+import { DriversPage } from "@/components/features/drivers/drivers-page";
+import { AnalyticsPage } from "@/components/features/analytics/analytics-page";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { DemoPage } from "@/page/demo";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -39,36 +45,38 @@ createRoot(document.getElementById("root")!).render(
       console.error("Error caught by boundary:", error, info);
     }}
   >
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system">
-        <BrowserRouter>
-          <Toaster position="top-center" richColors />
-          <Suspense
-            fallback={
-              <PageContainer className="grid place-items-center min-h-screen">
-                <Spinner />
-              </PageContainer>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<RootLayout />}>
-                <Route element={<RouteProtector />}>
-                  <Route index element={<DashboardPage />} />
-                  <Route path="fleet" element={<VehicleRegistryPage />} />
-                  <Route path="dispatch" element={<DashboardPage />} />
-                  <Route path="maintenance" element={<DashboardPage />} />
-                  <Route path="expenses" element={<DashboardPage />} />
-                  <Route path="drivers" element={<DashboardPage />} />
-                  <Route path="analytics" element={<DashboardPage />} />
-                  <Route path="settings" element={<DashboardPage />} />
+    <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system">
+          <BrowserRouter>
+            <Toaster position="top-center" richColors />
+            <Suspense
+              fallback={
+                <PageContainer className="grid place-items-center min-h-screen">
+                  <Spinner />
+                </PageContainer>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<RootLayout />}>
+                  <Route element={<RouteProtector />}>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="fleet" element={<VehicleRegistryPage />} />
+                    <Route path="dispatch" element={<DispatchPage />} />
+                    <Route path="maintenance" element={<MaintenancePage />} />
+                    <Route path="expenses" element={<ExpensesPage />} />
+                    <Route path="drivers" element={<DriversPage />} />
+                    <Route path="analytics" element={<AnalyticsPage />} />
+                    <Route path="settings" element={<DashboardPage />} />
+                  </Route>
+                  <Route path="demo" element={<DemoPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
-                <Route path="demo" element={<DemoPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </TooltipProvider>
   </ErrorBoundary>,
 );
