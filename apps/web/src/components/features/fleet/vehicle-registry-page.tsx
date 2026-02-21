@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Loader2, Truck, Hash, Tag, Box, Gauge, Weight } from "lucide-react";
 
 import { api } from "@/lib/api-client";
+import { useHasRole } from "@/hooks/use-role";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,7 @@ type VehicleFormValues = z.infer<typeof vehicleSchema>;
 
 export function VehicleRegistryPage() {
   const queryClient = useQueryClient();
+  const canManageVehicles = useHasRole(["manager"]); // only manager can create/update/delete
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
@@ -84,7 +86,7 @@ export function VehicleRegistryPage() {
   });
 
   const form = useForm<VehicleFormValues>({
-    resolver: zodResolver(vehicleSchema) as any,
+    resolver: zodResolver(vehicleSchema) as Resolver<VehicleFormValues>,
     defaultValues: {
       licensePlate: "",
       name: "",
@@ -195,9 +197,11 @@ export function VehicleRegistryPage() {
             Manage your fleet physical assets, verify capacities, and check availability statuses.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> Add Vehicle
-        </Button>
+        {canManageVehicles && (
+          <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+          </Button>
+        )}
       </div>
 
       <Card className="border-border/50 shadow-sm bg-card overflow-hidden">
@@ -258,24 +262,28 @@ export function VehicleRegistryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleOpenEdit(v)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => handleOpenDelete(v.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {canManageVehicles ? (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                            onClick={() => handleOpenEdit(v)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleOpenDelete(v.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

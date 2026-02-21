@@ -13,6 +13,7 @@ import { PageContainer } from "./components/page-container";
 import { Button } from "@/components/ui/button";
 import { ErrorFallback } from "@/components/error-fallback";
 import { RouteProtector } from "@/components/route-protector";
+import { RoleRouteGuard } from "@/components/role-route-guard";
 import { DashboardPage } from "@/components/dashboard-page";
 import { VehicleRegistryPage } from "@/components/features/fleet/vehicle-registry-page";
 import { DispatchPage } from "@/components/features/dispatch/dispatch-page";
@@ -22,6 +23,8 @@ import { DriversPage } from "@/components/features/drivers/drivers-page";
 import { AnalyticsPage } from "@/components/features/analytics/analytics-page";
 import { LoginPage } from "@/components/features/auth/login-page";
 import { SignupPage } from "@/components/features/auth/signup-page";
+import { ForgotPasswordPage } from "@/components/features/auth/forgot-password-page";
+import { ResetPasswordPage } from "@/components/features/auth/reset-password-page";
 import { LandingPage } from "@/components/features/landing/landing-page";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DemoPage } from "@/page/demo";
@@ -63,16 +66,24 @@ createRoot(document.getElementById("root")!).render(
               <Routes>
                 <Route path="login" element={<LoginPage />} />
                 <Route path="signup" element={<SignupPage />} />
+                <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="reset-password" element={<ResetPasswordPage />} />
                 <Route path="/" element={<LandingPage />} />
                 <Route element={<RootLayout />}>
                   <Route element={<RouteProtector />}>
                     <Route path="command" element={<DashboardPage />} />
                     <Route path="vehicle" element={<VehicleRegistryPage />} />
-                    <Route path="dispatch" element={<DispatchPage />} />
-                    <Route path="maintenance" element={<MaintenancePage />} />
+                    <Route element={<RoleRouteGuard allowedRoles={["manager", "dispatcher"]} />}>
+                      <Route path="dispatch" element={<DispatchPage />} />
+                    </Route>
+                    <Route element={<RoleRouteGuard allowedRoles={["manager"]} />}>
+                      <Route path="maintenance" element={<MaintenancePage />} />
+                    </Route>
                     <Route path="expenses" element={<ExpensesPage />} />
                     <Route path="drivers" element={<DriversPage />} />
-                    <Route path="analytics" element={<AnalyticsPage />} />
+                    <Route element={<RoleRouteGuard allowedRoles={["manager", "analyst"]} />}>
+                      <Route path="analytics" element={<AnalyticsPage />} />
+                    </Route>
                     <Route path="settings" element={<DashboardPage />} />
                   </Route>
                   <Route path="demo" element={<DemoPage />} />

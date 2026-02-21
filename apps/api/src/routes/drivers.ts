@@ -137,11 +137,11 @@ router.put(
   },
 );
 
-// PATCH /api/drivers/:id/status (manager, safety_officer)
+// PATCH /api/drivers/:id/status (manager, dispatcher, safety_officer — assign/status for trips)
 router.patch(
   "/:id/status",
   requireAuth,
-  requireRole("manager", "safety_officer"),
+  requireRole("manager", "dispatcher", "safety_officer"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = updateDriverStatusSchema.safeParse(req.body);

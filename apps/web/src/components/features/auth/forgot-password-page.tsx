@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Truck, Loader2 } from "lucide-react";
@@ -25,41 +25,32 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const loginSchema = z.object({
+const forgotSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters long."),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type ForgotFormValues = z.infer<typeof forgotSchema>;
 
-export function LoginPage() {
-  const navigate = useNavigate();
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+export function ForgotPasswordPage() {
+  const form = useForm<ForgotFormValues>({
+    resolver: zodResolver(forgotSchema),
+    defaultValues: { email: "" },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (values: LoginFormValues) => {
-      const { data, error } = await authClient.signIn.email({
+  const mutation = useMutation({
+    mutationFn: async (values: ForgotFormValues) => {
+      const { error } = await authClient.requestPasswordReset({
         email: values.email,
-        password: values.password,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      toast.success("Logged in successfully!");
-      navigate("/command");
+      toast.success("If an account exists, a reset link was sent to your email.");
+      form.reset();
     },
     onError: (error: Error) => {
-      toast.error(
-        error.message || "Failed to log in. Please check your credentials.",
-      );
+      toast.error(error.message ?? "Something went wrong. Try again.");
     },
   });
 
@@ -75,15 +66,15 @@ export function LoginPage() {
 
         <Card className="border-border/50 shadow-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Welcome back</CardTitle>
+            <CardTitle className="text-xl">Forgot password?</CardTitle>
             <CardDescription>
-              Login to your account to access the command center
+              Enter your email and we’ll send you a link to reset your password.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit((v) => loginMutation.mutate(v))}
+                onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
                 className="space-y-4"
               >
                 <FormField
@@ -96,34 +87,7 @@ export function LoginPage() {
                         <Input
                           placeholder="name@example.com"
                           type="email"
-                          disabled={loginMutation.isPending}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Password</FormLabel>
-                        <Link
-                          to="/forgot-password"
-                          className="text-xs text-primary hover:underline underline-offset-4"
-                        >
-                          Forgot password?
-                        </Link>
-                      </div>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          disabled={loginMutation.isPending}
+                          disabled={mutation.isPending}
                           {...field}
                         />
                       </FormControl>
@@ -135,27 +99,26 @@ export function LoginPage() {
                 <Button
                   type="submit"
                   className="w-full mt-2"
-                  disabled={loginMutation.isPending}
+                  disabled={mutation.isPending}
                 >
-                  {loginMutation.isPending ? (
+                  {mutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
+                      Sending...
                     </>
                   ) : (
-                    "Sign in"
+                    "Send reset link"
                   )}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
               <Link
-                to="/signup"
+                to="/login"
                 className="text-primary hover:underline underline-offset-4"
               >
-                Sign up
+                Back to sign in
               </Link>
             </div>
           </CardContent>

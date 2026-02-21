@@ -1,16 +1,17 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
 
-import { requireAuth } from "@/lib/middleware";
+import { requireAuth, requireRole } from "@/lib/middleware";
 import { AppError } from "@/lib/errors";
 import * as analyticsService from "@/service/analytics";
 
 const router = Router();
 
-// GET /api/analytics/summary
+// GET /api/analytics/summary (manager, analyst — financial reports)
 router.get(
   "/summary",
   requireAuth,
+  requireRole("manager", "analyst"),
   async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const summary = await analyticsService.getAnalyticsSummary();

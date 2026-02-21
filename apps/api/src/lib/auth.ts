@@ -15,6 +15,14 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      // In development, log the reset link so you can test without an email provider.
+      // For production, plug in Resend, SendGrid, nodemailer, etc. and send the email.
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Password reset] Link for", user.email, ":", url);
+      }
+      // Optional: use env to enable real email (e.g. RESEND_API_KEY) and send here.
+    },
   },
   user: {
     additionalFields: {
