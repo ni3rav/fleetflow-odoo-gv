@@ -102,15 +102,17 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="h-16 flex flex-row items-center px-4 border-b border-border text-primary font-bold text-xl gap-2">
-        <Truck className="h-6 w-6" />
-        FleetFlow
+      <SidebarHeader className="h-20 flex flex-row items-center px-6 border-b border-border/50 text-primary font-bold text-xl gap-3">
+        <div className="flex items-center justify-center bg-primary text-primary-foreground p-1.5 rounded-lg shadow-sm">
+          <Truck className="h-5 w-5" />
+        </div>
+        <span className="tracking-tight">FleetFlow</span>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className="gap-1.5 px-3 mt-4">
               {items.map((item) => {
                 const isActive =
                   location.pathname === item.url ||
@@ -122,9 +124,10 @@ export function AppSidebar() {
                       asChild
                       isActive={isActive}
                       tooltip={item.title}
+                      className="rounded-lg h-auto py-2.5 px-3 transition-all hover:bg-primary/10 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary font-medium"
                     >
-                      <Link to={item.url}>
-                        <item.icon />
+                      <Link to={item.url} className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5 mb-0.5 opacity-80" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
