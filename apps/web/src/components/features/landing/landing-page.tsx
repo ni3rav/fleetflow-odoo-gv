@@ -52,7 +52,7 @@ export function LandingPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <FluidBackground />
-      <header className="sticky top-0 z-50 w-full border-b border-border/20 bg-background/60 backdrop-blur-xl">
+      <header className="fixed top-0 z-50 w-full border-b border-border/20 bg-background/20 backdrop-blur-2xl">
         <div className="container flex h-16 max-w-screen-2xl items-center justify-between mx-auto px-4 md:px-8">
           <div className="flex items-center gap-2 text-primary">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
