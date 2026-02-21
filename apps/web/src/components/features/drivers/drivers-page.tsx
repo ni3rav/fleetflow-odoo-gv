@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { Users, Plus, Edit, Trash2, Loader2, AlertCircle, IdCard, Calendar, ShieldCheck } from "lucide-react";
 
 import { api } from "@/lib/api-client";
+import { useHasRole } from "@/hooks/use-role";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -68,8 +69,30 @@ const driverSchema = z.object({
 
 type DriverFormValues = z.infer<typeof driverSchema>;
 
+function formatDutyLabel(status: string): string {
+  const labels: Record<string, string> = {
+    on_duty: "On Duty",
+    off_duty: "Off Duty",
+    suspended: "Suspended",
+  };
+  return labels[status] ?? status;
+}
+
+function getStatusChangeErrorMessage(err: unknown): string {
+  const msg =
+    (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data?.error ??
+    (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+    (err instanceof Error ? err.message : "");
+  if (msg.includes("Requires one of") || msg.includes("Forbidden")) return "You don't have permission to change driver status.";
+  if (msg.includes("active trip")) return "This driver has active trip(s). Complete or cancel them before changing status.";
+  if (msg.includes("Driver not found")) return "Driver not found.";
+  return msg || "Couldn't update driver status. Try again.";
+}
+
 export function DriversPage() {
   const queryClient = useQueryClient();
+  const canCreateEditDriver = useHasRole(["manager", "safety_officer"]);
+  const canDeleteDriver = useHasRole(["manager"]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
@@ -82,7 +105,7 @@ export function DriversPage() {
   });
 
   const form = useForm<DriverFormValues>({
-    resolver: zodResolver(driverSchema) as any,
+    resolver: zodResolver(driverSchema) as Resolver<DriverFormValues>,
     defaultValues: {
       name: "",
       licenseNumber: "",
@@ -125,11 +148,11 @@ export function DriversPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       api.patch(`/api/drivers/${id}/status`, { status }),
-    onSuccess: () => {
+    onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
-      toast.success("Status updated!");
+      toast.success(`Driver set to ${formatDutyLabel(status)}.`);
     },
-    onError: (err: Error) => toast.error(err.message || "Failed to act on driver status"),
+    onError: (err) => toast.error(getStatusChangeErrorMessage(err)),
   });
 
   const onSubmit = (values: DriverFormValues) => {
@@ -204,9 +227,11 @@ export function DriversPage() {
             Manage personnel, track compliance, and view safety scores.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> Add Driver
-        </Button>
+        {canCreateEditDriver && (
+          <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" /> Add Driver
+          </Button>
+        )}
       </div>
 
       <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
@@ -238,7 +263,7 @@ export function DriversPage() {
                     <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-28 rounded-md" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto flex-shrink-0" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto shrink-0" /></TableCell>
                   </TableRow>
                 ))
               ) : drivers.length === 0 ? (
@@ -291,22 +316,29 @@ export function DriversPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                          onClick={() => handleOpenEdit(d)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => handleOpenDelete(d.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canCreateEditDriver && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                            onClick={() => handleOpenEdit(d)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteDriver && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleOpenDelete(d.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!canCreateEditDriver && !canDeleteDriver && (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

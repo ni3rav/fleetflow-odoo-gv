@@ -9,7 +9,7 @@ export type FleetRole = "manager" | "dispatcher" | "safety_officer" | "analyst";
 /**
  * RBAC reference (PS-aligned):
  * - Vehicles: list/get = all auth; available = manager, dispatcher; create/update/delete = manager
- * - Drivers: list/get = all auth; available = manager, dispatcher; create/update/status = manager, safety_officer; delete = manager
+ * - Drivers: list/get = all auth; available = manager, dispatcher; create/update = manager, safety_officer; status = manager, dispatcher, safety_officer; delete = manager
  * - Trips: list/get = all auth; create/status = manager, dispatcher
  * - Maintenance: list/get = all auth; create/update = manager
  * - Expenses: list/get = all auth; create = manager, dispatcher, analyst; update = manager, dispatcher, analyst; delete = manager

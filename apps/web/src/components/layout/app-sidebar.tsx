@@ -30,6 +30,7 @@ import {
   BarChart3,
   LogOut,
 } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { Link, useLocation } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
 import type { FleetRole } from "@/hooks/use-role";
@@ -51,6 +52,7 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+// Nav visibility matches backend RBAC: restrict where only certain roles can perform actions
 const items: {
   title: string;
   url: string;
@@ -59,7 +61,7 @@ const items: {
 }[] = [
   { title: "Command Center", url: "/command", icon: LayoutDashboard },
   { title: "Vehicle Registry", url: "/vehicle", icon: Truck },
-  { title: "Dispatch", url: "/dispatch", icon: CalendarCheck },
+  { title: "Dispatch", url: "/dispatch", icon: CalendarCheck, allowedRoles: ["manager", "dispatcher"] },
   { title: "Maintenance", url: "/maintenance", icon: Wrench, allowedRoles: ["manager"] },
   { title: "Expenses & Fuel", url: "/expenses", icon: Receipt },
   { title: "Drivers", url: "/drivers", icon: Users },
@@ -84,11 +86,14 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="h-20 flex flex-row items-center px-6 border-b border-border/50 text-primary font-bold text-xl gap-3">
-        <div className="flex items-center justify-center bg-primary text-primary-foreground p-1.5 rounded-lg shadow-sm">
-          <Truck className="h-5 w-5" />
+      <SidebarHeader className="h-20 flex flex-row items-center justify-between px-6 border-b border-border/50 text-primary font-bold text-xl gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-center bg-primary text-primary-foreground p-1.5 rounded-lg shadow-sm shrink-0">
+            <Truck className="h-5 w-5" />
+          </div>
+          <span className="tracking-tight truncate">FleetFlow</span>
         </div>
-        <span className="tracking-tight">FleetFlow</span>
+        <ThemeSwitcher />
       </SidebarHeader>
 
       <SidebarContent>
