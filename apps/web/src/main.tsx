@@ -22,6 +22,7 @@ import { DriversPage } from "@/components/features/drivers/drivers-page";
 import { AnalyticsPage } from "@/components/features/analytics/analytics-page";
 import { LoginPage } from "@/components/features/auth/login-page";
 import { SignupPage } from "@/components/features/auth/signup-page";
+import { LandingPage } from "@/components/features/landing/landing-page";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DemoPage } from "@/page/demo";
 
@@ -62,7 +63,8 @@ createRoot(document.getElementById("root")!).render(
               <Routes>
                 <Route path="login" element={<LoginPage />} />
                 <Route path="signup" element={<SignupPage />} />
-                <Route path="/" element={<RootLayout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route element={<RootLayout />}>
                   <Route element={<RouteProtector />}>
                     <Route path="command" element={<DashboardPage />} />
                     <Route path="vehicle" element={<VehicleRegistryPage />} />
