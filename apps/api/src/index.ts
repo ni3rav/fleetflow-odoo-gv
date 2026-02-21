@@ -10,6 +10,8 @@ import demoRouter from "@/routes/demo";
 import vehiclesRouter from "@/routes/vehicles";
 import driversRouter from "@/routes/drivers";
 import tripsRouter from "@/routes/trips";
+import maintenanceRouter from "@/routes/maintenance";
+import expensesRouter from "@/routes/expenses";
 
 const app = express();
 
@@ -55,6 +57,8 @@ app.use("/api", demoRouter);
 app.use("/api/vehicles", vehiclesRouter);
 app.use("/api/drivers", driversRouter);
 app.use("/api/trips", tripsRouter);
+app.use("/api/maintenance", maintenanceRouter);
+app.use("/api/expenses", expensesRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
