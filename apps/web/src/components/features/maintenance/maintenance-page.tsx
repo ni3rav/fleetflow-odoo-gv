@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Wrench, Plus, Edit, Trash2, Loader2, Calendar, FileText, Settings, DollarSign, Box } from "lucide-react";
+import { Wrench, Plus, Edit, Trash2, Loader2, Calendar, FileText, Settings, IndianRupee, Box } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -292,7 +292,7 @@ export function MaintenancePage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-medium text-emerald-500">
-                      ${Number(log.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{Number(log.cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -397,7 +397,7 @@ export function MaintenancePage() {
                     name="cost"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-1.5 text-foreground/80"><DollarSign className="w-3.5 h-3.5 text-primary" /> Cost ($)</FormLabel>
+                        <FormLabel className="flex items-center gap-1.5 text-foreground/80"><IndianRupee className="w-3.5 h-3.5 text-primary" /> Cost (₹)</FormLabel>
                         <FormControl>
                           <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" type="number" step="0.01" min="0" placeholder="0.00" disabled={isPending} {...field} />
                         </FormControl>

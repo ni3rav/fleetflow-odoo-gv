@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CopyPlus, Map } from "lucide-react";
 import { TripCreationForm } from "./trip-creation-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,8 +14,8 @@ import { Button } from "@/components/ui/button";
 
 type Trip = {
   id: string;
-  vehicle: { id: string; name: string; licensePlate: string };
-  driver: { id: string; name: string };
+  vehicleId: string;
+  driverId: string;
   cargoWeightKg: number;
   originAddress: string;
   destination: string;
@@ -23,12 +25,25 @@ type Trip = {
 
 export function DispatchPage() {
   const queryClient = useQueryClient();
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // We could just fetch all trips minus drafts or handled in backend.
-  const { data: trips = [], isLoading } = useQuery({
+  const { data: trips = [], isLoading: loadingTrips } = useQuery({
     queryKey: ["trips"],
     queryFn: () => api.get<Trip[]>("/api/trips"),
   });
+
+  const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: () => api.get<any[]>("/api/vehicles"),
+  });
+
+  const { data: drivers = [], isLoading: loadingDrivers } = useQuery({
+    queryKey: ["drivers"],
+    queryFn: () => api.get<any[]>("/api/drivers"),
+  });
+
+  const isLoading = loadingTrips || loadingVehicles || loadingDrivers;
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -68,23 +83,25 @@ export function DispatchPage() {
             Create and assign new trips to available vehicles and drivers.
           </p>
         </div>
+        <Button onClick={() => setIsFormOpen(true)} className="gap-2">
+          <CopyPlus className="h-4 w-4" />
+          New Dispatch
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <Card className="border-border/50 xl:col-span-1 bg-card shadow-sm h-fit">
-          <CardHeader className="border-b border-border/50 pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CopyPlus className="h-5 w-5 text-primary" />
-              Create New Trip
-            </CardTitle>
-            <CardDescription>Fill out the details below to assign a new dispatch.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <TripCreationForm />
-          </CardContent>
-        </Card>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Trip</DialogTitle>
+            <DialogDescription>Fill out the details below to assign a new dispatch.</DialogDescription>
+          </DialogHeader>
+          <TripCreationForm onSuccess={() => setIsFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
 
-        <Card className="border-border/50 xl:col-span-2 bg-card shadow-sm overflow-hidden">
+      <div className="grid grid-cols-1 gap-6">
+
+        <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
           <CardHeader className="bg-muted/10 border-b border-border/50 pb-4 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -143,8 +160,16 @@ export function DispatchPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col text-sm">
-                            <span className="font-medium">{trip.vehicle?.name || "Unknown Vehicle"}</span>
-                            <span className="text-xs text-muted-foreground">{trip.driver?.name || "Unknown Driver"}</span>
+                            <span className="font-medium">
+                              {trip.vehicleId
+                                ? vehicles.find(v => v.id === trip.vehicleId)?.name || "Unknown Vehicle"
+                                : "Unknown Vehicle"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {trip.driverId
+                                ? drivers.find(d => d.id === trip.driverId)?.name || "Unknown Driver"
+                                : "Unknown Driver"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">{trip.cargoWeightKg}</TableCell>

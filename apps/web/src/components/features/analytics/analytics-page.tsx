@@ -95,7 +95,7 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {isLoading ? <Skeleton className="h-8 w-24" /> : `$${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {isLoading ? <Skeleton className="h-8 w-24" /> : `₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Combined expenses & maintenance</p>
           </CardContent>
@@ -107,7 +107,7 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">
-              {isLoading ? <Skeleton className="h-8 w-24" /> : `$${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {isLoading ? <Skeleton className="h-8 w-24" /> : `₹${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Fuel, tolls, and other daily costs</p>
           </CardContent>
@@ -119,7 +119,7 @@ export function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">
-              {isLoading ? <Skeleton className="h-8 w-24" /> : `$${totalMaintenance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {isLoading ? <Skeleton className="h-8 w-24" /> : `₹${totalMaintenance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Repairs and preventative service</p>
           </CardContent>
@@ -163,7 +163,7 @@ export function AnalyticsPage() {
                     ))}
                   </Pie>
                   <RechartsTooltip
-                    formatter={(value: any) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    formatter={(value: any) => `₹${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" />
@@ -199,14 +199,14 @@ export function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" opacity={0.2} />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
                   <YAxis
-                    tickFormatter={(value) => `$${value}`}
+                    tickFormatter={(value) => `₹${value}`}
                     tick={{ fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                     dx={-10}
                   />
                   <RechartsTooltip
-                    formatter={(value: any) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    formatter={(value: any) => `₹${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
