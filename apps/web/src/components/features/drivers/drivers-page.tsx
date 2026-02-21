@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Users, Plus, Edit, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { Users, Plus, Edit, Trash2, Loader2, AlertCircle, IdCard, Calendar, ShieldCheck } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -319,8 +319,8 @@ export function DriversPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px]">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px] rounded-2xl">
+          <DialogHeader className="pb-4 border-b border-border/50">
             <DialogTitle>{editingDriver ? "Edit Driver" : "Add Driver"}</DialogTitle>
             <DialogDescription>
               {editingDriver ? "Update driver details and compliance." : "Register a new qualified driver."}
@@ -334,9 +334,9 @@ export function DriversPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Users className="w-3.5 h-3.5 text-primary" /> Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. John Doe" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" placeholder="e.g. John Doe" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -347,9 +347,9 @@ export function DriversPage() {
                   name="licenseNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>License Number</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><IdCard className="w-3.5 h-3.5 text-primary" /> License Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. D1234567" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" placeholder="e.g. D1234567" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -360,9 +360,9 @@ export function DriversPage() {
                   name="licenseExpiry"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>License Expiry Date</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Calendar className="w-3.5 h-3.5 text-primary" /> License Expiry Date</FormLabel>
                       <FormControl>
-                        <Input type="date" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" type="date" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -373,14 +373,15 @@ export function DriversPage() {
                   name="safetyScore"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Initial Safety Score (0-100)</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><ShieldCheck className="w-3.5 h-3.5 text-primary" /> Initial Safety Score (0-100)</FormLabel>
                       <FormControl>
-                        <Input type="number" min="0" max="100" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" type="number" min="0" max="100" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <Button type="submit" className="w-full mt-2" disabled={isPending}>
                   {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editingDriver ? "Save Changes" : "Register Driver"}

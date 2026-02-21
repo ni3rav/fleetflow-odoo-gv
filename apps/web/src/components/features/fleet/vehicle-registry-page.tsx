@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Loader2, Truck } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Truck, Hash, Tag, Box, Gauge, Weight } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -287,8 +287,8 @@ export function VehicleRegistryPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px]">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px] rounded-2xl">
+          <DialogHeader className="pb-4 border-b border-border/50">
             <DialogTitle>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</DialogTitle>
             <DialogDescription>
               {editingVehicle ? "Update vehicle details." : "Register a new vehicle in the system."}
@@ -302,9 +302,9 @@ export function VehicleRegistryPage() {
                   name="licensePlate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>License Plate</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Hash className="w-3.5 h-3.5 text-primary" /> License Plate</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. XYZ-1234" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" placeholder="e.g. XYZ-1234" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -315,9 +315,9 @@ export function VehicleRegistryPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Vehicle Name</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Tag className="w-3.5 h-3.5 text-primary" /> Vehicle Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Delivery Van 1" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" placeholder="e.g. Delivery Van 1" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -328,9 +328,9 @@ export function VehicleRegistryPage() {
                   name="model"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Model</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Box className="w-3.5 h-3.5 text-primary" /> Model</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Ford Transit" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" placeholder="e.g. Ford Transit" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -341,14 +341,14 @@ export function VehicleRegistryPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Truck className="w-3.5 h-3.5 text-primary" /> Type</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         disabled={isPending}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-muted/40 border-border/60 focus:ring-primary/50">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
@@ -367,9 +367,9 @@ export function VehicleRegistryPage() {
                   name="maxCapacityKg"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Capacity (kg)</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Weight className="w-3.5 h-3.5 text-primary" /> Max Capacity (kg)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="0" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" type="number" placeholder="0" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -380,9 +380,9 @@ export function VehicleRegistryPage() {
                   name="odometer"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Odometer (km)</FormLabel>
+                      <FormLabel className="flex items-center gap-1.5 text-foreground/80"><Gauge className="w-3.5 h-3.5 text-primary" /> Odometer (km)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="0" disabled={isPending} {...field} />
+                        <Input className="bg-muted/40 border-border/60 focus-visible:ring-primary/50" type="number" placeholder="0" disabled={isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
