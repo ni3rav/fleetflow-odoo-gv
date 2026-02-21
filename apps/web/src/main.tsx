@@ -60,9 +60,9 @@ createRoot(document.getElementById("root")!).render(
               }
             >
               <Routes>
+                <Route path="login" element={<LoginPage />} />
+                <Route path="signup" element={<SignupPage />} />
                 <Route path="/" element={<RootLayout />}>
-                  <Route path="login" element={<LoginPage />} />
-                  <Route path="signup" element={<SignupPage />} />
                   <Route element={<RouteProtector />}>
                     <Route path="command" element={<DashboardPage />} />
                     <Route path="vehicle" element={<VehicleRegistryPage />} />
