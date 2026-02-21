@@ -9,6 +9,11 @@ import { env } from "@/lib/env";
 import demoRouter from "@/routes/demo";
 import vehiclesRouter from "@/routes/vehicles";
 import driversRouter from "@/routes/drivers";
+import tripsRouter from "@/routes/trips";
+import maintenanceRouter from "@/routes/maintenance";
+import expensesRouter from "@/routes/expenses";
+import dashboardRouter from "@/routes/dashboard";
+import analyticsRouter from "@/routes/analytics";
 
 const app = express();
 
@@ -53,6 +58,11 @@ app.use(express.json());
 app.use("/api", demoRouter);
 app.use("/api/vehicles", vehiclesRouter);
 app.use("/api/drivers", driversRouter);
+app.use("/api/trips", tripsRouter);
+app.use("/api/maintenance", maintenanceRouter);
+app.use("/api/expenses", expensesRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/analytics", analyticsRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
