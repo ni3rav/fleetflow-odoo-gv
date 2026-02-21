@@ -8,7 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,10 +19,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { LayoutDashboard, Truck, CalendarCheck, Wrench, Receipt, Users, BarChart3, LogOut, User as UserIcon } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
-import { authClient } from "@/lib/auth-client"
+} from "@/components/ui/alert-dialog";
+import {
+  LayoutDashboard,
+  Truck,
+  CalendarCheck,
+  Wrench,
+  Receipt,
+  Users,
+  BarChart3,
+  LogOut,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { authClient } from "@/lib/auth-client";
+
+const ROLE_LABELS: Record<string, string> = {
+  manager: "Fleet Manager",
+  dispatcher: "Dispatcher",
+  safety_officer: "Safety Officer",
+  analyst: "Financial Analyst",
+};
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 const items = [
   {
@@ -59,17 +85,20 @@ const items = [
     title: "Analytics",
     url: "/analytics",
     icon: BarChart3,
-  }
-]
+  },
+];
 
 export function AppSidebar() {
-  const location = useLocation()
-  const { data: session } = authClient.useSession()
+  const location = useLocation();
+  const { data: session } = authClient.useSession();
 
   const handleLogout = async () => {
-    await authClient.signOut()
-    window.location.href = "/" // Reload and redirect back to auth
-  }
+    await authClient.signOut();
+    window.location.href = "/"; // Reload and redirect back to auth
+  };
+
+  const userName = session?.user?.name || "User";
+  const userRole = (session?.user as { role?: string })?.role || "dispatcher";
 
   return (
     <Sidebar>
@@ -83,7 +112,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
               {items.map((item) => {
-                const isActive = location.pathname === item.url || (item.url !== "/" && location.pathname.startsWith(item.url))
+                const isActive =
+                  location.pathname === item.url ||
+                  (item.url !== "/" && location.pathname.startsWith(item.url));
 
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -98,7 +129,7 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -110,12 +141,14 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <AlertDialog>
               <div className="flex w-full items-center gap-2 rounded-md p-2 text-sidebar-foreground ring-sidebar-ring">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                  <UserIcon className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold shrink-0">
+                  {getInitials(userName)}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{session?.user?.name || "Dispatcher"}</span>
-                  <span className="truncate text-xs">{(session?.user as { role?: string })?.role || "Admin"}</span>
+                  <span className="truncate font-semibold">{userName}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {ROLE_LABELS[userRole] || userRole}
+                  </span>
                 </div>
                 <AlertDialogTrigger asChild>
                   <button className="flex aspect-square size-8 items-center justify-center rounded-md hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors outline-none focus-visible:ring-2 ring-sidebar-ring">
@@ -129,12 +162,16 @@ export function AppSidebar() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure to logout?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You will be redirected back to the login screen and your session will end.
+                    You will be redirected back to the login screen and your
+                    session will end.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleLogout} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogAction
+                    onClick={handleLogout}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     Ok
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -144,5 +181,5 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

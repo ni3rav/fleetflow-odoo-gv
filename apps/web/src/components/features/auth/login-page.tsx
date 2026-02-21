@@ -1,13 +1,13 @@
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { Truck, Loader2 } from "lucide-react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Truck, Loader2 } from "lucide-react";
 
-import { authClient } from "@/lib/auth-client"
-import { Button } from "@/components/ui/button"
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,20 +15,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters long."),
-})
+});
 
-type LoginFormValues = z.infer<typeof loginSchema>
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
-  const navigate = useNavigate()
-  const [isPending, setIsPending] = useState(false)
+  const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,25 +41,27 @@ export function LoginPage() {
       email: "",
       password: "",
     },
-  })
+  });
 
-  async function onSubmit(values: LoginFormValues) {
-    setIsPending(true)
-    const { error } = await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
-    })
-
-    setIsPending(false)
-
-    if (error) {
-      toast.error(error.message || "Failed to log in. Please check your credentials.")
-      return
-    }
-
-    toast.success("Logged in successfully!")
-    navigate("/command")
-  }
+  const loginMutation = useMutation({
+    mutationFn: async (values: LoginFormValues) => {
+      const { data, error } = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Logged in successfully!");
+      navigate("/command");
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "Failed to log in. Please check your credentials.",
+      );
+    },
+  });
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-muted/30 p-6 md:p-10">
@@ -75,7 +82,10 @@ export function LoginPage() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit((v) => loginMutation.mutate(v))}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -83,7 +93,12 @@ export function LoginPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="name@example.com" type="email" disabled={isPending} {...field} />
+                        <Input
+                          placeholder="name@example.com"
+                          type="email"
+                          disabled={loginMutation.isPending}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -97,15 +112,24 @@ export function LoginPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" disabled={isPending} {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          disabled={loginMutation.isPending}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full mt-2" disabled={isPending}>
-                  {isPending ? (
+                <Button
+                  type="submit"
+                  className="w-full mt-2"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
@@ -119,7 +143,10 @@ export function LoginPage() {
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline underline-offset-4">
+              <Link
+                to="/signup"
+                className="text-primary hover:underline underline-offset-4"
+              >
                 Sign up
               </Link>
             </div>
@@ -127,5 +154,5 @@ export function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
