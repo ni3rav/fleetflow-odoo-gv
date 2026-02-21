@@ -37,30 +37,30 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="p-4 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Command Center</h2>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-wider text-foreground">Command Center</h2>
           <p className="text-muted-foreground mt-1 text-sm">
             Welcome back, <span className="font-medium text-foreground">{session?.user.name || session?.user.email || "Dispatcher"}</span>. Here is what's happening today.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, idx) => (
-          <Card key={idx} className="border-border/50 bg-card shadow-sm transition-all hover:shadow-md hover:border-border cursor-default group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+          <Card key={idx} className="border-border/60 bg-card shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default group rounded-xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-muted/20">
+              <CardTitle className="text-sm font-semibold text-muted-foreground group-hover:text-primary transition-colors">
                 {stat.title}
               </CardTitle>
-              <div className="p-2 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-                <stat.icon className="h-4 w-4 text-primary" />
+              <div className="p-2.5 bg-background shadow-sm rounded-lg group-hover:bg-primary group-hover:text-primary-foreground transition-colors border border-border/50">
+                <stat.icon className="h-4 w-4 text-primary group-hover:text-primary-foreground transition-colors" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="pt-6">
+              <div className="text-4xl font-extrabold tracking-tight text-foreground">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1 font-medium select-none">
                 {stat.trend}
               </p>
             </CardContent>
@@ -68,27 +68,27 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 border-border/50 shadow-sm bg-card">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Dispatches</CardTitle>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 border-border/60 shadow-sm bg-card rounded-xl">
+          <CardHeader className="border-b border-border/40 bg-muted/10">
+            <CardTitle className="text-lg font-semibold text-foreground/90">Recent Dispatches</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-sm text-muted-foreground flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-muted/30">
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground flex flex-col items-center justify-center p-12 border border-dashed border-border/60 rounded-xl bg-muted/20">
               <Package className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p>Dispatcher Table Component Will Go Here</p>
+              <p className="font-medium text-foreground/60">Dispatcher Table Component Go Here</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 border-border/50 shadow-sm bg-card">
-          <CardHeader>
-            <CardTitle className="text-lg">In-Shop Vehicles</CardTitle>
+        <Card className="col-span-3 border-border/60 shadow-sm bg-card rounded-xl">
+          <CardHeader className="border-b border-border/40 bg-muted/10">
+            <CardTitle className="text-lg font-semibold text-foreground/90">In-Shop Vehicles</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-sm text-muted-foreground flex flex-col items-center justify-center p-8 border border-dashed rounded-lg bg-muted/30">
+          <CardContent className="p-6">
+            <div className="text-sm text-muted-foreground flex flex-col items-center justify-center p-12 border border-dashed border-border/60 rounded-xl bg-muted/20">
               <AlertTriangle className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p>Maintenance List Component Will Go Here</p>
+              <p className="font-medium text-foreground/60">Maintenance List Component Go Here</p>
             </div>
           </CardContent>
         </Card>

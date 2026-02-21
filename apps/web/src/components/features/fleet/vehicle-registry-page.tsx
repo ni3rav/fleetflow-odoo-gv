@@ -29,12 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,7 +72,7 @@ type VehicleFormValues = z.infer<typeof vehicleSchema>;
 
 export function VehicleRegistryPage() {
   const queryClient = useQueryClient();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -100,7 +100,7 @@ export function VehicleRegistryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       toast.success("Vehicle added successfully!");
-      setIsSheetOpen(false);
+      setIsDialogOpen(false);
     },
     onError: (err: Error) => toast.error(err.message || "Failed to add vehicle"),
   });
@@ -111,7 +111,7 @@ export function VehicleRegistryPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       toast.success("Vehicle updated successfully!");
-      setIsSheetOpen(false);
+      setIsDialogOpen(false);
     },
     onError: (err: Error) => toast.error(err.message || "Failed to update vehicle"),
   });
@@ -144,7 +144,7 @@ export function VehicleRegistryPage() {
       maxCapacityKg: 0,
       odometer: 0,
     });
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
 
   const handleOpenEdit = (vehicle: Vehicle) => {
@@ -157,7 +157,7 @@ export function VehicleRegistryPage() {
       maxCapacityKg: vehicle.maxCapacityKg,
       odometer: vehicle.odometer,
     });
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
 
   const handleOpenDelete = (id: string) => {
@@ -285,16 +285,16 @@ export function VehicleRegistryPage() {
         </CardContent>
       </Card>
 
-      {/* Add / Edit Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</SheetTitle>
-            <SheetDescription>
+      {/* Add / Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</DialogTitle>
+            <DialogDescription>
               {editingVehicle ? "Update vehicle details." : "Register a new vehicle in the system."}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -352,7 +352,7 @@ export function VehicleRegistryPage() {
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="z-[60]">
                           <SelectItem value="truck">Truck</SelectItem>
                           <SelectItem value="van">Van</SelectItem>
                           <SelectItem value="bike">Bike</SelectItem>
@@ -388,15 +388,15 @@ export function VehicleRegistryPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full mt-4" disabled={isPending}>
+                <Button type="submit" className="w-full mt-2" disabled={isPending}>
                   {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editingVehicle ? "Save Changes" : "Create Vehicle"}
                 </Button>
               </form>
             </Form>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

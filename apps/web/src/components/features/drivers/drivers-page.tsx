@@ -29,12 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,7 +70,7 @@ type DriverFormValues = z.infer<typeof driverSchema>;
 
 export function DriversPage() {
   const queryClient = useQueryClient();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -96,7 +96,7 @@ export function DriversPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       toast.success("Driver added successfully!");
-      setIsSheetOpen(false);
+      setIsDialogOpen(false);
     },
     onError: (err: Error) => toast.error(err.message || "Failed to add driver"),
   });
@@ -107,7 +107,7 @@ export function DriversPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       toast.success("Driver updated successfully!");
-      setIsSheetOpen(false);
+      setIsDialogOpen(false);
     },
     onError: (err: Error) => toast.error(err.message || "Failed to update driver"),
   });
@@ -148,7 +148,7 @@ export function DriversPage() {
       licenseExpiry: "",
       safetyScore: 100,
     });
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
 
   const handleOpenEdit = (driver: Driver) => {
@@ -160,7 +160,7 @@ export function DriversPage() {
       licenseExpiry: driver.licenseExpiry.substring(0, 10),
       safetyScore: driver.safetyScore,
     });
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
 
   const handleOpenDelete = (id: string) => {
@@ -317,16 +317,16 @@ export function DriversPage() {
         </CardContent>
       </Card>
 
-      {/* Add / Edit Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{editingDriver ? "Edit Driver" : "Add Driver"}</SheetTitle>
-            <SheetDescription>
+      {/* Add / Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{editingDriver ? "Edit Driver" : "Add Driver"}</DialogTitle>
+            <DialogDescription>
               {editingDriver ? "Update driver details and compliance." : "Register a new qualified driver."}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -381,15 +381,15 @@ export function DriversPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full mt-4" disabled={isPending}>
+                <Button type="submit" className="w-full mt-2" disabled={isPending}>
                   {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editingDriver ? "Save Changes" : "Register Driver"}
                 </Button>
               </form>
             </Form>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
